@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 // const authJwt = require("./middleware/authJwt");
+require("dotenv").config();
 
 //cross-env를 이용하여 prod상태인지 dev 상태인지 판별
 //배포상태면 prod
@@ -38,7 +39,7 @@ app.use(cookieParser());
 // 자동로그인 미들웨어
 // app.use(authJwt.autoLogin);
 
-app.listen(8535);
+app.listen(process.env.CLIENT_PORT);
 
 // const memberRouter = require("./routes/member.routes");
 // app.use("/member", memberRouter);
