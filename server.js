@@ -41,8 +41,8 @@ app.use(cookieParser());
 
 app.listen(process.env.CLIENT_PORT);
 
-// const memberRouter = require("./routes/member.routes");
-// app.use("/member", memberRouter);
+const memberRouter = require("./routes/member.routes");
+app.use("/member", memberRouter);
 
 // const bbsRouter = require("./routes/bbs.routes");
 // app.use("/bbs", bbsRouter);
