@@ -4,6 +4,7 @@ const jwtConfig = require("../config/jwt.config.js");
 const bcrypt = require("bcryptjs");
 const memberService = require("../service/member.service.js");
 const uploadHelper = require("../config/upload.config.js");
+require("dotenv").config();
 
 // accessToken 검증 함수
 exports.verifyAccessToken = async (req, res, next) => {
@@ -43,27 +44,31 @@ exports.verifyAccessToken = async (req, res, next) => {
     // 3 -> 리프레시 토큰을 보내어 리프레시토큰 검증 후 액세스토큰 재발급 요청 보내기.
     //      재발급 받은 액세스 토큰으로 다시 액세스 토큰 검증 후 정상 반응처리
     //refresh token 실검증 처리
-    jwt.verify(refreshToken, jwtConfig.refreshSecret, (err, decodedRefresh) => {
-      if (err) {
-        //리프레시 토큰이 만료 쿠키 삭제도 여기서 해버려
-        res.clearCookie("refreshToken");
-        throw new Error("토큰 만료 No more RToken.");
-      } else {
-        //액세스 토큰 검증 처리
-        jwt.verify(token, jwtConfig.secret, (err, decoded) => {
-          if (err) {
-            // access token이 만료된 경우
-            throw new Error("토큰 만료 No more AToken");
-          } else {
-            //검증이 완료 되었을 경우 body에 값을 넣어서 전달한다.
-            req.body.account = decoded.account;
-            req.body.myMemberId = decoded.id;
-            next();
-          }
-        });
-        //액세스 토큰 검증 처리 끝.
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET,
+      (err, decodedRefresh) => {
+        if (err) {
+          //리프레시 토큰이 만료 쿠키 삭제도 여기서 해버려
+          res.clearCookie("refreshToken");
+          throw new Error("토큰 만료 No more RToken.");
+        } else {
+          //액세스 토큰 검증 처리
+          jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err, decoded) => {
+            if (err) {
+              // access token이 만료된 경우
+              throw new Error("토큰 만료 No more AToken");
+            } else {
+              //검증이 완료 되었을 경우 body에 값을 넣어서 전달한다.
+              req.body.account = decoded.account;
+              req.body.myMemberId = decoded.id;
+              next();
+            }
+          });
+          //액세스 토큰 검증 처리 끝.
+        }
       }
-    });
+    );
     //refresh token 실검증 처리 끝.
   } catch (error) {
     console.log(error);
@@ -143,18 +148,22 @@ exports.checkRefreshTokenForNewAccessToken = async (req, res, next) => {
       throw new Error("비정상적인 토큰입니다.");
     }
     // DB에 정상적으로 등록된 리프레시토큰이라면, 리프레시토큰검증
-    jwt.verify(refreshToken, jwtConfig.refreshSecret, (err, decodedRefresh) => {
-      if (err) {
-        console.log(err);
-        // 쿠키 삭제
-        res.clearCookie("refreshToken");
-        throw new Error("유효하지 않은 토큰입니다.");
-      } else {
-        req.body.account = decodedRefresh.account;
-        req.body.myMemberId = decodedRefresh.id;
-        next();
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET,
+      (err, decodedRefresh) => {
+        if (err) {
+          console.log(err);
+          // 쿠키 삭제
+          res.clearCookie("refreshToken");
+          throw new Error("유효하지 않은 토큰입니다.");
+        } else {
+          req.body.account = decodedRefresh.account;
+          req.body.myMemberId = decodedRefresh.id;
+          next();
+        }
       }
-    });
+    );
   } catch (error) {
     console.log(error);
     return res.status(403).send(error);
