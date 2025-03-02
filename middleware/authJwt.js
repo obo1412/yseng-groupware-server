@@ -33,6 +33,15 @@ exports.verifyAccessToken = async (req, res, next) => {
       throw new Error("토큰 검증 에러 No DB RToken.");
     }
 
+    // 여기서 리프레시 토큰을 검증하면 안된다. 이것은 오로지 엑세스토큰만을 검증해야한다.
+    // 1. 액세스 토큰이 정상 상태이고, 만료되기 전이면 디코딩 값을 넘기고 정상 처리.
+    // 2. 액세스 토큰이 비정상 상태이면, 잘못된 토큰으로 로그아웃 처리.
+    // 3. 액세스 토큰이 정상 상태이고, 만료되었으면 만료 신호 보내기.
+    // 이후 클라이언트 단에서 위 상태를 받아서 반응 처리.
+    // 1 -> 정상 진행
+    // 2 -> 로그아웃
+    // 3 -> 리프레시 토큰을 보내어 리프레시토큰 검증 후 액세스토큰 재발급 요청 보내기.
+    //      재발급 받은 액세스 토큰으로 다시 액세스 토큰 검증 후 정상 반응처리
     //refresh token 실검증 처리
     jwt.verify(refreshToken, jwtConfig.refreshSecret, (err, decodedRefresh) => {
       if (err) {
