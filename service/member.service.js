@@ -57,9 +57,9 @@ exports.selectFamilyMemberList = async (params) => {
 // 회원 가입
 exports.insertMemberOne = async function (params) {
   const queryString = `INSERT INTO member (
-    account, password, name, nickName, phone, email, addr, gender
+    account, password, name
     ) VALUES (
-    :account, :password, :name, :nickName, :phone, :email, :addr, :gender
+    :account, :password, :name
     )`;
   const aQuery = await customUtils.removeSpecialChracters(queryString);
   const result = await pool.query(aQuery, params);

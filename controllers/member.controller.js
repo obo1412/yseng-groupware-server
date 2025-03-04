@@ -30,17 +30,7 @@ exports.memberList = async (req, res) => {
 // 회원가입
 exports.memberSignup = async (req, res) => {
   // 데이터 받아오기
-  const {
-    userAccount,
-    userPw,
-    userPwRe,
-    userName,
-    phone,
-    email,
-    addr,
-    nickName,
-    gender,
-  } = req.body;
+  const { account, password, confirmPassword, name } = req.body;
 
   const err = new Error();
   err.message = "회원가입 서버 에러 발생.";
@@ -48,38 +38,33 @@ exports.memberSignup = async (req, res) => {
   try {
     const pattern = /\s/g;
     //공백체크
-    if (userAccount.match(pattern)) {
+    if (account.match(pattern)) {
       err.message = "아이디에 공백이 포함되어 있습니다.";
       throw err;
     }
 
-    if (userName === "") {
+    if (name === "") {
       err.message = "이름을 기입하세요.";
       throw err;
     }
 
-    if (email === "") {
-      err.message = "이메일 정보를 확인해주세요.";
-      throw err;
-    }
+    // if (email === "") {
+    //   err.message = "이메일 정보를 확인해주세요.";
+    //   throw err;
+    // }
 
-    if (userPw !== userPwRe) {
+    if (password !== confirmPassword) {
       err.message = "확인 비밀번호가 서로 다릅니다.";
       throw err;
     }
 
     const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(userPw, salt);
+    const hash = bcrypt.hashSync(password, salt);
 
     const params = {
-      account: userAccount,
+      account,
       password: hash,
-      name: userName,
-      phone,
-      email,
-      addr,
-      nickName,
-      gender,
+      name,
     };
 
     const result = await memberService.insertMemberOne(params);

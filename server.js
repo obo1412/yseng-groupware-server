@@ -11,11 +11,7 @@ const PRODUCTION = process.env.NODE_ENV === "development" ? false : true;
 
 const domainList = PRODUCTION
   ? ["https://system.yseng.net"]
-  : [
-      "http://localhost:3000",
-      "http://192.168.0.30:3000",
-      "http://192.168.0.32:3000",
-    ];
+  : ["http://localhost:3000", "http://192.168.0.32:3000"];
 
 const corsOptions = {
   origin: (origin, callback) => {
