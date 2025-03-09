@@ -133,6 +133,30 @@ exports.verifyAccessToken = async (req, res, next) => {
   //refreshToken이 DB에 있는지 검증 끝.
 };
 
+// 리프레시 토큰 검증 멀티로그인
+exports.verifyRefreshTokenForMultiLogin = async (refreshToken) => {
+  try {
+    //리프레시 토큰 검증 처리
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
+      if (err) {
+        // refresh token이 만료된 경우
+        throw new Error("토큰 만료(refresh) 다시 로그인해 주세요.");
+      } else {
+        //검증이 완료 되었을 경우 body에 값을 넣어서 전달한다.
+        // req.body.account = decoded.account;
+        // req.body.myMemberId = decoded.id;
+        return true;
+      }
+    });
+    //리프레시 토큰 검증 처리 끝.
+  } catch (error) {
+    console.log(error);
+    // 파일 삭제하기
+    // await uploadHelper.unlinkFilesByRollback(files);
+    return false;
+  }
+};
+
 //로그인시 리프레시토큰 재활용 기능
 exports.checkRefreshTokenInDB = async (req, res, next) => {
   const userAccount = req.body.userAccount;

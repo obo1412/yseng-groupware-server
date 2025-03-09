@@ -69,23 +69,9 @@ exports.insertMemberOne = async function (params) {
 // 로그인 - 회원정보 불러오기 Account로
 exports.selectMemberByAccount = async function (params) {
   const queryString = `
-  SELECT m.*,
-    r.idFamily2ClanFather as fam1, cf.name2Clan as f1Clan, ff.name1Family as f1Family,
-    r.idFamily2ClanMother as fam2, cm.name2Clan as f2Clan, fm.name1Family as f2Family,
-    rs.idFamily2ClanFather as fam3, csf.name2Clan as f3Clan, fsf.name1Family as f3Family,
-    rs.idFamily2ClanMother as fam4, csm.name2Clan as f4Clan, fsm.name1Family as f4Family
-  FROM member m 
-  LEFT JOIN member_relation r ON m.id = r.idMemberMe
-  LEFT JOIN member_relation rs ON r.idMemberSpouse = rs.idMemberMe
-  LEFT JOIN family2_clan cf ON r.idFamily2ClanFather = cf.id
-  LEFT JOIN family2_clan cm ON r.idFamily2ClanMother = cm.id
-  LEFT JOIN family2_clan csf ON rs.idFamily2ClanFather = csf.id
-  LEFT JOIN family2_clan csm ON rs.idFamily2ClanMother = csm.id
-  LEFT JOIN family1_name ff ON cf.idFamily1Name = ff.id
-  LEFT JOIN family1_name fm ON cm.idFamily1Name = fm.id
-  LEFT JOIN family1_name fsf ON csf.idFamily1Name = fsf.id
-  LEFT JOIN family1_name fsm ON csm.idFamily1Name = fsm.id
-  WHERE account = :account`;
+  SELECT *
+    FROM member
+    WHERE account = :account`;
   const aQuery = await customUtils.removeSpecialChracters(queryString);
   const result = await pool.query(aQuery, params);
   return result[0];

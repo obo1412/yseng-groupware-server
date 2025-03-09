@@ -22,13 +22,13 @@ router.use(function (req, res, next) {
 router.get("/list", [], controller.memberList);
 
 //회원 가입
-router.post("/signup", [], controller.memberSignup);
+router.post("/signup", [], controller.memberSignUp);
 
 //회원가입 유저 아이디 중복 체크
 router.post("/dupCheckUserAccount", [], controller.dupCheckUserAccount);
 
 //회원 로그인
-router.post("/login", [authJwt.checkRefreshTokenInDB], controller.memberLogin);
+router.post("/login", [], controller.memberLogin);
 
 //회원 로그아웃
 router.patch("/logout", [], controller.memberLogout);

@@ -7,6 +7,7 @@ const fs = require("fs");
 // const { ROLES, HTTPCODE } = require("../config/Constant.js");
 const bcrypt = require("bcryptjs");
 const jwtConfig = require("../config/jwt.config.js");
+const authJwt = require("../middleware/authJwt.js");
 const memberService = require("../service/member.service.js");
 const optionConfig = require("../config/option.config.js");
 const { makeThumbnail } = require("../config/upload.config.js");
@@ -28,7 +29,7 @@ exports.memberList = async (req, res) => {
 };
 
 // 회원가입
-exports.memberSignup = async (req, res) => {
+exports.memberSignUp = async (req, res) => {
   // 데이터 받아오기
   const { account, password, confirmPassword, name } = req.body;
 
@@ -125,11 +126,8 @@ exports.dupCheckUserAccount = async (req, res) => {
 //로그인 처리
 exports.memberLogin = async (req, res) => {
   const body = req.body;
-  const userAccount = body.userAccount;
-  const userPw = body.userPw;
-  const refreshTokenUse = body.refreshToken;
-  // 오토로그인 기능 현재는 사용 안함.
-  // const autoLoginChecker = body.autoLogin;
+  const userAccount = body.account;
+  const userPw = body.password;
 
   let result = {
     result: false,
@@ -156,50 +154,8 @@ exports.memberLogin = async (req, res) => {
       throw err;
     }
 
-    const {
-      password,
-      refreshToken,
-      fam1,
-      f1Clan,
-      f1Family,
-      fam2,
-      f2Clan,
-      f2Family,
-      fam3,
-      f3Clan,
-      f3Family,
-      fam4,
-      f4Clan,
-      f4Family,
-      ...returnMemberInfo
-    } = resultAccount[0];
-
-    const familyArr = [];
-    const family1 = {
-      id: fam1,
-      clan: f1Clan,
-      family: f1Family,
-    };
-    const family2 = {
-      id: fam2,
-      clan: f2Clan,
-      family: f2Family,
-    };
-    const family3 = {
-      id: fam3,
-      clan: f3Clan,
-      family: f3Family,
-    };
-    const family4 = {
-      id: fam4,
-      clan: f4Clan,
-      family: f4Family,
-    };
-    familyArr.push(family1);
-    familyArr.push(family2);
-    familyArr.push(family3);
-    familyArr.push(family4);
-    returnMemberInfo.familyArr = familyArr;
+    const { password, ...returnMemberInfo } = resultAccount[0];
+    let refreshToken = returnMemberInfo.refreshToken;
 
     const id = resultAccount[0].id;
     const account = resultAccount[0].account;
@@ -207,22 +163,24 @@ exports.memberLogin = async (req, res) => {
     // return 용 userInfo 에 accessToken 담기
     returnMemberInfo.accessToken = accessToken;
 
-    // 가족 관계 정보 불러오기
-    const myRelation = await memberService.selectMemberRelationByMyMemberId({
-      myMemberId: id,
-    });
-    returnMemberInfo.myRelation = myRelation[0];
+    // refreshToken 이 없을 경우 생성.
+    if (refreshToken === null) {
+      refreshToken = jwtConfig.signRefreshToken(account, id);
+    } else {
+      // refreshToken 검증
+      authJwt.verifyRefreshTokenForMultiLogin(refreshToken);
+    }
 
     // Refresh Token을 HttpOnly 쿠키에 담아서 클라이언트에게 전달
     res.cookie(
       "refreshToken",
-      refreshTokenUse,
+      refreshToken,
       optionConfig.cookieRefreshTokenOpt
     );
 
     // 리프레시 토큰 업데이트
     await memberService.updateRefreshTokenByIdAndAccount({
-      refreshToken: refreshTokenUse,
+      refreshToken,
       id,
       account,
     });
